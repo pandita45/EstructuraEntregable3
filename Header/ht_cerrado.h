@@ -82,14 +82,14 @@ public:
             // Si encontramos un lugar vacío o eliminado, insertamos
             if (table[index].state == EMPTY || table[index].state == DELETED) {
                 table[index].key = key;
-                table[index].value = value;
+                table[index].value = 1;
                 table[index].state = OCCUPIED;
                 elementos++;
                 return;
             }
             // Si ya existe, actualizar
             if (table[index].state == OCCUPIED && table[index].key == key) {
-                table[index].value = value;
+                table[index].value += 1;
                 return;
             }
         }
