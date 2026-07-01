@@ -1,6 +1,10 @@
+#ifndef HT_CERRADO
+#define HT_CERRADO
+
 #include <iostream>
 #include <vector>
 #include <string>
+#include <type_traits>
 
 using namespace std;
 
@@ -9,74 +13,84 @@ enum State { EMPTY, OCCUPIED, DELETED };
 enum ProbeStrategy { LINEAR, QUADRATIC, DOUBLE_HASHING };
 
 template <typename Key>
-struct Entry {
+struct EntryCerrado {
     Key key;
     int value;
     State state;
-
-    Entry() : key(0), value(0), state(EMPTY) {}
+    EntryCerrado() : key(), value(0), state(EMPTY) {}
 };
 
 
-
-int h1(int k, int n) {
-    return k % n;
-}
-
-int h2(int k, int n) {
-    float a = (float)k * 0.618; 
-    a -= (int)a;
-    return n * a;
-}
-
-// Linear Probing
-int linear_probing(int k, int n, int i) {
-    return (h1(k, n) + i) % n;
-}
-
-// Quadratic Probing
-int quadratic_probing(int k, int n, int i) {
-    return (h1(k, n) + i + 2 * i * i) % n;
-}
-
-// Double Hashing
-int double_hashing(int k, int n, int i) {
-    return (h1(k, n) + i * h2(k, n)) % n;
-}
-
 template <typename Key>
-class HashTable {
+class HashTableCerrado {
 private:
-    vector<Entry<Key>> table;
+    vector<EntryCerrado<Key>> table;
     int size;
     int elementos;
     int posicionPrimos;
     ProbeStrategy probeStrategy;
 
+    // Convierte una clave a entero para usar en las funciones hash
+    int keyToInt(const Key &k) const {
+        if constexpr (std::is_same_v<Key, int>) {
+            return k;
+        } else {
+            int suma = 0;
+            for (char c : k) suma += static_cast<unsigned char>(c);
+            return suma;
+        }
+    }
+    //funcion 1
+    int h1(int k) const {
+        return k % size;
+    }
+    //funcion 2
+    int h2(int k) const {
+        float a = (float)k * 0.618f;
+        a -= (int)a;
+        return static_cast<int>(size * a);
+    }
+    
+    int linear_probing(const Key &k, int i) const {
+        int kk = keyToInt(k);
+        return (h1(kk) + i) % size;
+    }
+
+    int quadratic_probing(const Key &k, int i) const {
+        int kk = keyToInt(k);
+        return (h1(kk) + i + 2 * i * i) % size;
+    }
+
+    int double_hashing(const Key &k, int i) const {
+        int kk = keyToInt(k);
+        return (h1(kk) + i * h2(kk)) % size;
+    }
+
 public:
-    HashTable(int tableSize, ProbeStrategy strategy = LINEAR) : size(tableSize), elementos(0), posicionPrimos(0), probeStrategy(strategy) {
+    HashTableCerrado(int tableSize, ProbeStrategy strategy = LINEAR) : size(tableSize), elementos(0), posicionPrimos(0), probeStrategy(strategy) {
         table.resize(size);
     }
 
-    int probe(int key, int i) {
+    int probe(const Key &key, int i) const {
         // Dependiendo de la estrategia de sondeo, llamamos a la función correspondiente
         switch (probeStrategy) {
             case LINEAR:
-                return linear_probing(key, size, i);
+                return linear_probing(key, i);
             case QUADRATIC:
-                return quadratic_probing(key, size, i);
+                return quadratic_probing(key, i);
             case DOUBLE_HASHING:
-                return double_hashing(key, size, i);
+                return double_hashing(key, i);
             default:
-                return linear_probing(key, size, i);
+                return linear_probing(key, i);
         }
     }
 
-    void insert(Key key, int value) {
+    void insert(const Key &key) {
+        // Si la carga de la tabla supera el 75%, redimensionamos
         if ((float)(elementos) / (float)size > 0.75f) {
             resize();
         }
-
+        // Insertamos el elemento usando la estrategia de sondeo
         for (int i = 0; i < size; i++) {
             int index = probe(key, i);
             // Si encontramos un lugar vacío o eliminado, insertamos
@@ -95,20 +109,21 @@ public:
         }
 
     }
-
-    int get(Key key) {
+    // Función para obtener el valor asociado a una clave, se guarda en result y devuelve true si se encontró, false si no
+    bool get(const Key &key, int &result) const {
         for (int i = 0; i < size; i++) {
             int index = probe(key, i);
             if (table[index].state == EMPTY) break; // ya no va a aparecer
 
             if (table[index].state == OCCUPIED && table[index].key == key) {
-                return table[index].value;
+                result = table[index].value;
+                return true;
             }
         }
-        return -1; // Devolver un valor especial para indicar que no se encontró
+        return false;
     }
-
-    void remove(Key key) {
+    // Función para eliminar una clave de la tabla hash
+    void remove(const Key &key) {
 
         for (int i = 0; i < size; i++) {
             // Calculamos el índice usando la función de sondeo
@@ -124,6 +139,7 @@ public:
             }
         }
     }
+    // Función para redimensionar la tabla hash cuando la carga supera el 75%
     void resize(){
         // Lista de números primos para el tamaño de la tabla hash
         const int primos[] = {3079, 6151, 12289, 24593, 49157, 98317, 196613, 393241, 786433, 1572869, 3145739, 6291469};
@@ -138,7 +154,7 @@ public:
 
         
         //se guarda la tabla vieja y se crea una nueva con el nuevo tamaño
-        vector<Entry<Key>> oldTable = table;
+        vector<EntryCerrado<Key>> oldTable = table;
         table.clear();
         table.resize(newsize);
         int oldSize = size;
@@ -164,3 +180,5 @@ public:
         
     }
 };
+
+#endif
