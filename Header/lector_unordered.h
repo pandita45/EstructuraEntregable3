@@ -7,33 +7,34 @@
 #include <string>
 #include <sstream>
 #include <unordered_map>
+#include <type_traits>
+
+#include "csv_utils.h"
 
 enum class UnorderedTypeId {ID, SCREEN_NAME};
+template <typename Key>
 class LectorUnordered {
 public:
-    std::unordered_map<std::string, int> lecturaArchivo(UnorderedTypeId type){
-        std::ifstream archivo("../Data/auspol2019.csv");
+    std::unordered_map<Key, int> lecturaArchivo(UnorderedTypeId type, const std::filesystem::path& datasetPath = resolveDatasetPath()){
+        std::ifstream archivo(datasetPath);
         if (!archivo.is_open()) {
             std::cerr << "No se pudo abrir el archivo." << std::endl;
             exit(1);
         }
 
         std::string linea;
-        std::unordered_map<std::string, int> hashTable; // Tabla hash para almacenar los datos
-        std::getline(archivo, linea);
-        while(getline(archivo, linea)){
-            std::stringstream ss(linea);
-            std::string campo, basura;
+        std::unordered_map<Key, int> hashTable;
 
-            for (int i = 0; i < 8; ++i) {
-                std::getline(ss, campo, ',');
-                if (i == 5 && type == UnorderedTypeId::ID) {
-                    hashTable[campo] += 1; // Incrementamos el contador para el ID
-                } else if (i == 7 && type == UnorderedTypeId::SCREEN_NAME) {
-                    hashTable[campo] += 1; // Incrementamos el contador para el SCREEN_NAME
-                } else {
-                    std::getline(ss, basura, ','); // Leemos el campo y lo ignoramos
-                }
+        if (!readCsvRecord(archivo, linea)) {
+            return hashTable;
+        }
+
+        while(readCsvRecord(archivo, linea)){
+            const auto campos = splitCsvRecord(linea);
+            if (type == UnorderedTypeId::ID && campos.size() > 5) {
+                hashTable[parseCsvKey<Key>(campos[5])] += 1;
+            } else if (type == UnorderedTypeId::SCREEN_NAME && campos.size() > 6) {
+                hashTable[parseCsvKey<Key>(campos[6])] += 1;
             }
         }
         return hashTable;

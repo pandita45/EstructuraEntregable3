@@ -8,6 +8,7 @@
 #include <type_traits>
 
 #include "ht_cerrado.h"
+#include "csv_utils.h"
 
 enum class ClosedTypeId { ID, SCREEN_NAME };
 enum class ClosedHashType { LINEAR, QUADRATIC, DOUBLE_HASHING };
@@ -15,8 +16,8 @@ enum class ClosedHashType { LINEAR, QUADRATIC, DOUBLE_HASHING };
 template <typename Key>
 class LectorCerrado {
 public:
-    HashTableCerrado<Key> lecturaArchivo(ClosedTypeId type, ClosedHashType hashType) {
-        std::ifstream archivo("../Data/auspol2019.csv");
+    HashTableCerrado<Key> lecturaArchivo(ClosedTypeId type, ClosedHashType hashType, const std::filesystem::path& datasetPath = resolveDatasetPath()) {
+        std::ifstream archivo(datasetPath);
         if (!archivo.is_open()) {
             std::cerr << "No se pudo abrir el archivo." << std::endl;
             exit(1);
@@ -33,23 +34,17 @@ public:
         std::string linea;
        
 
-        std::getline(archivo, linea);
-        while (std::getline(archivo, linea)) {
-            std::stringstream ss(linea);
-            std::string campo, basura;
+        if (!readCsvRecord(archivo, linea)) {
+            return hashTable;
+        }
 
-            for (int i = 0; i < 8; i++){
-                if constexpr (std::is_same_v<Key, int>) {
-                    if (i == 5 && type == ClosedTypeId::ID) {
-                        hashTable.insert(static_cast<Key>(std::stoll(campo)));
-                    }
-                } else if constexpr (std::is_same_v<Key, std::string>) {
-                    if (i == 7 && type == ClosedTypeId::SCREEN_NAME) {
-                        hashTable.insert(static_cast<Key>(campo));
-                    }
-                } else {
-                    std::getline(ss, basura, ','); // Leemos el campo y lo ignoramos
-                }
+        while (readCsvRecord(archivo, linea)) {
+            const auto campos = splitCsvRecord(linea);
+
+            if (type == ClosedTypeId::ID && campos.size() > 5) {
+                hashTable.insert(parseCsvKey<Key>(campos[5]));
+            } else if (type == ClosedTypeId::SCREEN_NAME && campos.size() > 6) {
+                hashTable.insert(parseCsvKey<Key>(campos[6]));
             }
         }
 

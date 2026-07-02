@@ -25,8 +25,8 @@ int main() {
     }
 
     cout << endl;
-    cout << "=== Prueba de HashTableCerrado<int> con LINEAR ===" << endl;
-    HashTableCerrado<int> hashLineal(10, LINEAR);
+    cout << "=== Prueba de HashTableCerrado<long long> con LINEAR ===" << endl;
+    HashTableCerrado<long long> hashLineal(10, LINEAR);
     hashLineal.insert(10);
     hashLineal.insert(10);
     hashLineal.insert(21);
@@ -40,8 +40,8 @@ int main() {
     }
 
     cout << endl;
-    cout << "=== Prueba de HashTableCerrado<int> con QUADRATIC ===" << endl;
-    HashTableCerrado<int> hashCuadratica(10, QUADRATIC);
+    cout << "=== Prueba de HashTableCerrado<long long> con QUADRATIC ===" << endl;
+    HashTableCerrado<long long> hashCuadratica(10, QUADRATIC);
     hashCuadratica.insert(10);
     hashCuadratica.insert(10);
     hashCuadratica.insert(21);
@@ -55,8 +55,8 @@ int main() {
     }
 
     cout << endl;
-    cout << "=== Prueba de HashTableCerrado<int> con DOUBLE_HASHING ===" << endl;
-    HashTableCerrado<int> hashDoble(10, DOUBLE_HASHING);
+    cout << "=== Prueba de HashTableCerrado<long long> con DOUBLE_HASHING ===" << endl;
+    HashTableCerrado<long long> hashDoble(10, DOUBLE_HASHING);
     hashDoble.insert(10);
     hashDoble.insert(10);
     hashDoble.insert(21);

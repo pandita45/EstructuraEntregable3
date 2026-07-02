@@ -42,13 +42,11 @@ public:
         for (auto& entry : table[index]) {
             if (entry.key == key) {
                 entry.value += 1;
-                cout << "Se ha actualizado el valor de la clave: " << key << " a " << entry.value << endl;
                 return;
             }
         }
 
         // Si no existe, la agregamos al final
-        cout << "Se ha insertado la clave: " << key << " con valor 1" << endl;
         table[index].emplace_back(key, 1);
     }
 
@@ -75,25 +73,36 @@ public:
             }
         }
     }
-    int hashFunctionID(Key key) const { //hash basica para int
-        return key % size;
-    }
-    int hashFunctionString(const string& key) const {
-        //transformar el string
-        int suma = 0;
-        for(const char& c : key) {
-            //suma el valor ASCII de cada caracter
-            suma += c; 
+    int hashFunctionID(const Key& key) const {
+        long long value = static_cast<long long>(key);
+        if (value < 0) {
+            value = -value;
         }
 
-        return suma % size;
+        return static_cast<int>(value % size);
+    }
+    int hashFunctionString(const string& key) const {
+        long long suma = 0;
+        for (const unsigned char c : key) {
+            suma += static_cast<long long>(c);
+        }
+
+        long long index = suma % size;
+        if (index < 0) {
+            index += size;
+        }
+
+        return static_cast<int>(index);
     }
     //función que devuelve el índice de la tabla hash para una clave dada, dependiendo del tipo de clave (int o string)
-    int getIndex(Key key) const {
-        if constexpr (std::is_same_v<Key, int>) { // Si Key es int, usamos hashFunctionID
+    int getIndex(const Key& key) const {
+        if constexpr (std::is_integral_v<Key>) {
             return hashFunctionID(key);
-        } else if constexpr (std::is_same_v<Key, std::string>) { // Si Key es string, usamos hashFunctionString
+        } else if constexpr (std::is_same_v<Key, std::string>) {
             return hashFunctionString(key);
+        } else {
+            static_assert(std::is_integral_v<Key> || std::is_same_v<Key, std::string>, "HashTableAbierto solo soporta claves enteras o std::string");
+            return 0;
         }
     }
 };

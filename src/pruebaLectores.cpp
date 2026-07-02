@@ -23,28 +23,29 @@ int main() {
 
 	cout << "=== Prueba de lectores sobre auspol2019.csv ===" << endl;
 
-	LectorAbierto<int> lectorAbiertoId;
+	LectorAbierto<long long> lectorAbiertoId;
 	auto tablaAbiertaId = lectorAbiertoId.lecturaArchivo(TypeId::ID);
-    cout << "HashTableAbierto<int> creada" << endl;
-	imprimirValor("HashTableAbierto<int> para user_id 92484856", tablaAbiertaId, 92484856);
+    cout << "HashTableAbierto<long long> creada" << endl;
+	imprimirValor("HashTableAbierto<long long> para user_id 92484856", tablaAbiertaId, 92484856LL);
 
 	LectorAbierto<string> lectorAbiertoNombre;
 	auto tablaAbiertaNombre = lectorAbiertoNombre.lecturaArchivo(TypeId::SCREEN_NAME);
 	imprimirValor("HashTableAbierto<string> para PIPELINEPETE", tablaAbiertaNombre, string("PIPELINEPETE"));
 
-	LectorCerrado<int> lectorCerradoId;
+	LectorCerrado<long long> lectorCerradoId;
 	auto tablaCerradaLineal = lectorCerradoId.lecturaArchivo(ClosedTypeId::ID, ClosedHashType::LINEAR);
-	imprimirValor("HashTableCerrado<int> LINEAR para user_id 92484856", tablaCerradaLineal, 92484856);
+	imprimirValor("HashTableCerrado<long long> LINEAR para user_id 92484856", tablaCerradaLineal, 92484856LL);
 
 	LectorCerrado<string> lectorCerradoNombre;
 	auto tablaCerradaCuadratica = lectorCerradoNombre.lecturaArchivo(ClosedTypeId::SCREEN_NAME, ClosedHashType::QUADRATIC);
 	imprimirValor("HashTableCerrado<string> QUADRATIC para PIPELINEPETE", tablaCerradaCuadratica, string("PIPELINEPETE"));
 
-	LectorUnordered lectorUnordered;
-	auto conteoIds = lectorUnordered.lecturaArchivo(UnorderedTypeId::ID);
-	auto conteoNombres = lectorUnordered.lecturaArchivo(UnorderedTypeId::SCREEN_NAME);
+	LectorUnordered<long long> lectorUnorderedIds;
+	auto conteoIds = lectorUnorderedIds.lecturaArchivo(UnorderedTypeId::ID);
+	LectorUnordered<string> lectorUnorderedNombres;
+	auto conteoNombres = lectorUnorderedNombres.lecturaArchivo(UnorderedTypeId::SCREEN_NAME);
 
-	cout << "unordered_map para user_id 92484856 = " << conteoIds["92484856"] << endl;
+	cout << "unordered_map para user_id 92484856 = " << conteoIds[92484856LL] << endl;
 	cout << "unordered_map para PIPELINEPETE = " << conteoNombres["PIPELINEPETE"] << endl;
 
 	return 0;

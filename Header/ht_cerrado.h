@@ -31,39 +31,64 @@ private:
     ProbeStrategy probeStrategy;
 
     // Convierte una clave a entero para usar en las funciones hash
-    int keyToInt(const Key &k) const {
-        if constexpr (std::is_same_v<Key, int>) {
-            return k;
+    long long keyToInt(const Key &k) const {
+        if constexpr (std::is_integral_v<Key>) {
+            long long value = static_cast<long long>(k);
+            if (value < 0) {
+                value = -value;
+            }
+            return value;
         } else {
-            int suma = 0;
+            long long suma = 0;
             for (char c : k) suma += static_cast<unsigned char>(c);
             return suma;
         }
     }
     //funcion 1
-    int h1(int k) const {
-        return k % size;
+    int h1(long long k) const {
+        long long value = k % size;
+        if (value < 0) {
+            value += size;
+        }
+        return static_cast<int>(value);
     }
     //funcion 2
-    int h2(int k) const {
-        float a = (float)k * 0.618f;
-        a -= (int)a;
-        return static_cast<int>(size * a);
+    int h2(long long k) const {
+        if (size <= 1) {
+            return 1;
+        }
+
+        int value = static_cast<int>(k % (size - 1));
+        if (value < 0) {
+            value += (size - 1);
+        }
+
+        return 1 + value;
     }
     
     int linear_probing(const Key &k, int i) const {
-        int kk = keyToInt(k);
+        long long kk = keyToInt(k);
         return (h1(kk) + i) % size;
     }
 
     int quadratic_probing(const Key &k, int i) const {
-        int kk = keyToInt(k);
-        return (h1(kk) + i + 2 * i * i) % size;
+        long long kk = keyToInt(k);
+        long long offset = static_cast<long long>(i) + 2LL * i * i;
+        long long index = (h1(kk) + offset) % size;
+        if (index < 0) {
+            index += size;
+        }
+        return static_cast<int>(index);
     }
 
     int double_hashing(const Key &k, int i) const {
-        int kk = keyToInt(k);
-        return (h1(kk) + i * h2(kk)) % size;
+        long long kk = keyToInt(k);
+        long long offset = static_cast<long long>(i) * h2(kk);
+        long long index = (h1(kk) + offset) % size;
+        if (index < 0) {
+            index += size;
+        }
+        return static_cast<int>(index);
     }
 
 public:
@@ -143,13 +168,15 @@ public:
     void resize(){
         // Lista de números primos para el tamaño de la tabla hash
         const int primos[] = {3079, 6151, 12289, 24593, 49157, 98317, 196613, 393241, 786433, 1572869, 3145739, 6291469};
-        int cantidadPrimos = primos[posicionPrimos++];
-        int newsize;
+        const int cantidadPrimos = static_cast<int>(sizeof(primos) / sizeof(primos[0]));
 
-        if (posicionPrimos >= cantidadPrimos) {
-            newsize = size * 2 + 1; // Si nos quedamos sin primos, simplemente duplicamos el tamaño
-        } else {
-            newsize = primos[posicionPrimos++];
+        while (posicionPrimos < cantidadPrimos && primos[posicionPrimos] <= size) {
+            ++posicionPrimos;
+        }
+
+        int newsize = (posicionPrimos < cantidadPrimos) ? primos[posicionPrimos++] : size * 2 + 1;
+        if (newsize <= size) {
+            newsize = size * 2 + 1;
         }
 
         
